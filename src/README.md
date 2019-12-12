@@ -1,6 +1,7 @@
 Analysis of Mass Shootings in America
 ================
 Teresa, Nick, Josh, Merzia
+
 12/12/2019
 
 # Environment Setup
