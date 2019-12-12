@@ -4,7 +4,7 @@ author: "Teresa, Nick, Josh, Merzia"
 subtitle: "MGSC 310, Fall 2019, Professor Hersh"
 date: "12/12/2019"
 output:
-  keep_md: true
+  keep_md: rmarkdown::github_document
 ---
   
 # Environment Setup
