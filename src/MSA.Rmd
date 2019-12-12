@@ -1,0 +1,304 @@
+---
+title: "Analysis of Mass Shootings in America"
+author: "Teresa, Nick, Josh, Merzia"
+subtitle: "MGSC 310, Fall 2019, Professor Hersh"
+date: "12/12/2019"
+output:
+  keep_md: true
+---
+  
+# Environment Setup
+```{r setup, echo=TRUE, eval=TRUE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+
+# data manupulation
+library(tidyverse)
+library(magrittr)
+library(zoo)
+library(lubridate)
+
+# plots
+library(ggplot2)
+library(gganimate)
+library(ggridges)
+library(hdm)
+
+# models
+library(randomForest)
+library(glmnet)
+library(glmnetUtils)
+
+# diagnostics
+library(caret)
+```
+
+# Data Aquisition and Cleaning
+
+## Loading the Datasets
+```{r load data, eval=TRUE}
+stanford_msa <- read.csv("../data/Stanford_MSA_Database.csv")
+NYTimes_msa <- read.csv("../data/NYTimes_msa.csv")
+```
+
+## Data Cleaning
+```{r data cleaning, warning=FALSE, eval=TRUE}
+# aggregate similar factors
+stanford_msa %<>% 
+  mutate(Shooter.Race = fct_recode(Shooter.Race,
+                                   "Asian American" = "Asian American/Some other race",
+                                   "Black American or African American" = "Black American or African American/Unknown",
+                                   "White American or European American" = "White American or European American/Some other Race",
+                                   "Some other race" = "Some Other Race",
+                                   "Some other race" = "Unknown"),
+         Fate.of.Shooter.at.the.scene = fct_recode(Fate.of.Shooter.at.the.scene,
+                                                   "Custody" = "Arrested",
+                                                   "Deceased" = "Killed"),
+         Fate.of.Shooter = fct_recode(Fate.of.Shooter,
+                                      "Custody/Escaped" = "Custody / Escaped",
+                                      "Custody/Escaped" = "FALSE"),
+         Type.of.Gun...General = fct_recode(Type.of.Gun...General,
+                                            "Multiple Guns" = "\nMultiple guns",
+                                            "Multiple Guns" = "Multiple guns",
+                                            "Multiple Guns" = "Multiple guns\n",
+                                            "Handgun" = "handgun",
+                                            "Handgun" = "9-mm"),
+         Shooter.s.Cause.of.Death = fct_recode(Shooter.s.Cause.of.Death,
+                                               "Suicide" = "Killed/Suicide",
+                                               "Not Applicable" = "Not applicable",
+                                               "Not Applicable" = "Not Apllicable"),
+         Place.Type = fct_recode(Place.Type, "Park/Wilderness" = "Park/Wildness"),
+         Targeted.Victim.s...General = fct_recode(Targeted.Victim.s...General,"General public" = "Social/General public"),
+         Possible.Motive...General = fct_recode(Possible.Motive...General, 
+                                                "Unknown" = "",
+                                                "Unknown" = "Terminated/Denied/Reprimanded")) 
+
+# correct column types
+stanford_msa %<>% mutate(
+  Title = as.character(Title),
+  Location = as.character(Location),
+  City = as.character(City),
+  Shooter.Name = as.character(Shooter.Name),
+  Shooter.Age.s. = toString(Shooter.Age.s.),
+  Number.of.shooters = as.numeric(as.character(Number.of.shooters)),
+  Average.Shooter.Age = as.numeric(as.character(Average.Shooter.Age)),
+  Number.of.Shotguns = as.numeric(as.character(Number.of.Shotguns)),
+  Number.of.Rifles = as.numeric(as.character(Number.of.Rifles)),
+  Number.of.Handguns = as.numeric(as.character(Number.of.Handguns)),
+  Number.of.Automatic.Guns = as.numeric(as.character(Number.of.Automatic.Guns)),
+  Number.of.Semi.Automatic.Guns = as.numeric(as.character(Number.of.Semi.Automatic.Guns)),
+  Total.Number.of.Guns = as.numeric(as.character(Total.Number.of.Guns)),
+  Date = as.Date(Date, format="%m/%d/%Y")
+)
+
+# remove description columns
+stanford_msa %<>% select(-c(CaseID, Description, Possible.Motive...Detailed, 
+                            History.of.Mental.Illness...Detailed, Date...Detailed,
+                            Targeted.Victim.s...Detailed, Type.of.Gun...Detailed, Notes,
+                            Data.Source.1, Data.Source.2, Data.Source.3, Data.Source.4, 
+                            Data.Source.5, Data.Source.6, Data.Source.7))
+
+# filter cases with a high confidence depreciation value
+stanford_msa %<>% filter(Depreciation == "1") # 1' indicates the case clearly fits the criteria for inclusion in the database
+
+# replace NAs for numeric values with mean
+is.numeric.NA <- function(x) return (is.numeric(x) & any(is.na(x)))
+replace.NA.mean <- function(x) {
+  avg <- round(mean(x, na.rm = T), 0)
+  return (ifelse(is.na(x), avg, x))
+}
+
+stanford_msa %<>% mutate_if(is.numeric.NA, replace.NA.mean)
+
+# correct column types
+NYTimes_msa %<>% mutate(
+  Publish.Date = as.Date(Publish.Date)
+)
+View(stanford_msa)
+```
+
+## Joining news data
+```{r news, eval=TRUE}
+dates <- unique(stanford_msa$Date)
+article_countByDate <- data.frame()
+
+
+for(i in 1:length(dates)) {
+  curr_date <- dates[[i]]
+  count <- nrow(
+    NYTimes_msa %>% 
+      filter(Publish.Date >= curr_date-30 & Publish.Date < curr_date)
+    )
+  
+  article_countByDate %<>% bind_rows(data.frame(curr_date, count))
+}
+
+stanford_msa <- inner_join(stanford_msa, article_countByDate, by = c("Date" = "curr_date"))
+stanford_msa %>% select(Date, count)
+```
+
+# Exploratory Plots
+
+## Density ridge plot of Total Victims by Type of Gun
+```{r graph, fig.height=5, fig.width=10, eval=TRUE}
+ggplot(stanford_msa, aes(x = Total.Number.of.Victims, y = Type.of.Gun...General, fill = Type.of.Gun...General)) +
+  geom_density_ridges(alpha = .5)
+```
+
+## Map of mass shootings
+```{r map, eval=TRUE}
+usa <- map_data('state')
+ggplot() +
+geom_path(data = usa, aes(x = long, y = lat, group = group)) +
+geom_point(data = stanford_msa %>% filter(Longitude > -130), aes(x = Longitude, y = Latitude, size = Total.Number.of.Victims), color = "blue") + geom_density()
+```
+
+## Animated plots on Count & Total Victims over time
+```{r anim, eval=TRUE}
+stanford_msa %<>% mutate(year = year(Date), yearmon = as.yearmon(Date))
+
+g <- ggplot(stanford_msa %>% filter(Date > "2000-01-01"), 
+             aes(x = yearmon, y = count)) +
+  geom_line(color= "blue") +
+  transition_reveal(year)
+
+g2 <- ggplot(stanford_msa %>% filter(Date > "2000-01-01"), 
+             aes(x = yearmon, y = Total.Number.of.Victims, 
+                 color=History.of.Mental.Illness...General)) +
+  geom_line() +
+  transition_reveal(year)
+
+g
+g2
+```
+
+# Analysis
+
+## Select variables and training data
+```{r subset}
+msa_sub <- stanford_msa %>% select(Total.Number.of.Victims, Day.of.Week, Number.of.shooters,
+                                   Average.Shooter.Age, Shooter.Sex, Shooter.Race,
+                                   Number.of.Automatic.Guns, Number.of.Semi.Automatic.Guns, 
+                                   Number.of.Shotguns, Fate.of.Shooter.at.the.scene, Fate.of.Shooter,
+                                   Shooter.s.Cause.of.Death, Place.Type, Relationship.to.Incident.Location,
+                                   Relationship.to.Incident.Location, Targeted.Victim.s...General, 
+                                   Possible.Motive...General, History.of.Mental.Illness...General, 
+                                   Military.Experience, Class, count)
+
+
+
+train_idx <- sample(1:nrow(msa_sub), size = .80*nrow(msa_sub))
+msa_train <- msa_sub %>% slice(train_idx)
+msa_test <- msa_sub %>% slice(-train_idx)
+```
+
+
+## Random Forest
+```{r rf}
+rf_mod <- randomForest(Total.Number.of.Victims ~ ., data = msa_train,
+                       type = regression,
+                       mtry = 6,
+                       ntree = 275,
+                       importance = T)
+
+# Helpful plots
+plot(rf_mod)
+varImpPlot(rf_mod)
+randomForestExplainer::plot_min_depth_distribution(rf_mod)
+
+diagnostics <- function(p, a) {
+  print(RMSE(p, a))
+  print(MAE(p, a))
+  print(R2(p, a))
+}
+preds_train <- predict(rf_mod, newdata = msa_train, type = "response")
+preds_test <- predict(rf_mod, newdata = msa_test, type = "response")
+
+diagnostics(preds_train, msa_train$Total.Number.of.Victims)
+diagnostics(preds_test, msa_test$Total.Number.of.Victims)
+```
+
+## Elastic Net
+```{r elnet}
+
+
+alpha_grid <- seq(0,1, len = 11)
+alpha_grid
+
+enet_fit <- cva.glmnet(Total.Number.of.Victims ~ .,
+                       data = msa_train,
+                       alpha = alpha_grid)
+print(enet_fit)
+summary(enet_fit)
+
+minlossplot(enet_fit)
+
+plot(enet_fit)
+
+enet_preds_train <- predict(enet_fit, newdata = msa_train, alpha = 0, lambda = 5.97685)
+enet_preds_train
+
+enet_preds_test <- predict(enet_fit, newdata = msa_test, alpha = 0, lambda = 5.97685, type = 'response')
+enet_preds_test
+
+diagnostics(enet_preds_testm msa_test$Total.Number.of.Victims)
+dignostics(enet_preds_train, msa_train$Total.Number.of.Victims)
+```
+
+#### Use ridge penalty
+```{r ridge}
+ridge_mod <- cv.glmnet(Total.Number.of.Victims ~ .,
+                       data = msa_train,
+                       alpha = 0)
+summary(ridge_mod)
+
+
+plot(ridge_mod)
+
+ridge_mod$lambda.min
+
+#training predictions
+ridge_preds_train <- predict(ridge_mod, newdata = msa_train, s = "lambda.min", type = 'response')
+ridge_preds_train
+
+
+
+#testing predictions
+ridge_preds_test <- predict(ridge_mod, newdata = msa_test, s = 'lambda.min', type = 'response')
+ridge_preds_test
+
+diagnostics(ridge_preds_train, msa_train$Total.Number.of.Victims)
+diagnostics(ridge_preds_test, msa_test$Total.Number.of.Victims)
+```
+
+#### Get Ridge results
+```{r ridge2}
+lam_min_co <- as.matrix(coef(ridge_mod, s = "lambda.min"))
+lam_min_co %>% subset(lam_min_co[,'1']< -1.5)
+lam_min_co %>% subset(lam_min_co[,'1']> 3.5)
+```
+
+## K-means Clustering Model
+```{r kmens}
+# select clustering vars
+msa_sub %<>% select_if(is.numeric) %>% select(-c(Number.of.Automatic.Guns, Number.of.Semi.Automatic.Guns, Number.of.Shotguns, count))
+
+# silhouette method
+fviz_nbclust(msa_sub, kmeans, method = "silhouette") +
+  geom_vline(xintercept = 4, linetype = 2) +
+  labs(subtitle = "Silhouette method")
+
+# all methods
+Nb_cl <- NbClust(msa_sub, diss = NULL, distance = "euclidean", 
+                 min.nc = 2, max.nc = 21, method = "kmeans")
+
+kmeans3 <- kmeans(msa_sub, centers = 3)
+
+clusplot(msa_sub, kmeans3$cluster, color=TRUE, shade=FALSE, labels=5, lines=2)
+fviz_cluster(kmeans3, data = msa_sub)
+```
+
+
+
+
+
+
