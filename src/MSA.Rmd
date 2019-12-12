@@ -11,24 +11,38 @@ output:
 ```{r setup, echo=TRUE, eval=TRUE}
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
+
+
 # data manupulation
+install.packages("tidyverse")
+install.packages("magrittr")
+install.packages("zoo")
+install.packages("lubridate")
 library(tidyverse)
 library(magrittr)
 library(zoo)
 library(lubridate)
 
 # plots
+install.packages("ggplot2")
+install.packages("gganimate")
+install.packages("ggridges")
+install.packages("hdm")
 library(ggplot2)
 library(gganimate)
 library(ggridges)
 library(hdm)
 
 # models
+install.packages("randomForest")
+install.packages("glmnet")
+install.packages("glmnetUtils")
 library(randomForest)
 library(glmnet)
 library(glmnetUtils)
 
 # diagnostics
+install.packages("caret")
 library(caret)
 ```
 
