@@ -111,7 +111,7 @@ Looking at the average minimal depth of each variable, the top four were *State*
 
 mean_min_depth vs time_a_root | mse_increase vs node_purity_increase
 :-------------------------:|:-------------------------:
-![](plots/importanceplot1.gif)  |  ![](plots/importanceplot2.gif)
+![](plots/importanceplot1.PNG)  |  ![](plots/importanceplot2.PNG)
 
 Looking at the two importance plots, we see that those four variables are grouped on the number of times they were a root node and their purity showing high significance. *History of Mental Health Illness* also was selected as a root node a large number of times but the average minimum depth was 4.5 so we did not explore that any further. On the importance plot of purity vs mse_increase, we see that *Number of Semi-Auto Guns* is actually somewhat far from the rest of the group, adding a significant amount of error to the model. It also is shown to have a p-value of >= 0. which is significantly over the level of significance of 0.01, which *State, Place Type,* and *Possible Motive* p-values are all under. This led us to conclude from this model that there are three significant variables round by the random forest that affect total number of victims: *State, Place Type,* and *Possible Motive*.
 
