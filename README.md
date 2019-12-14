@@ -26,18 +26,34 @@ Our data cleaning involved aggregating some factor levels in variables since the
 
 Out of the 325 observations and 40 variables, our summary stats brought up some very integral data. We highlighted 5 variables - total number of victims, total number of fatalities, shooter age, total guns, and number of shooters. The standard deviation (9.45) of the total number of victims is pretty high since the difference between max (102) and min (3) number of victims is pretty significant. With a max number of fatalities of 50, the mean of fatalities is 4.03. The mean of shooter age is 31.82 from a range of age from 12-years-old to 70-years-old. Total guns and number of shooters didn’t have large standard deviation of 1.08 and 1.10 respectively and the means are 1.70 and 1.10 respectively.
 
+![](plots/summary_stats.png)
+
 
 ## **Summary Plots**
 
-The first summary plot that we explored was a histogram of the number of shootings by city (slide 5). We chose to do this as a basic exploration to see if there were any obvious trends that we wanted to look into further. The results of this histogram showed that the cities with the highest number of shootings were Chicago, Phoenix, and Los Angeles.
+![](plots/plot1.PNG)
+The first summary plot that we explored was a histogram of the number of shootings by city. We chose to do this as a basic exploration to see if there were any obvious trends that we wanted to look into further. The results of this histogram showed that the cities with the highest number of shootings were Chicago, Phoenix, and Los Angeles.
 
+---
+
+![](plots/plot2.PNG)
 The second summary plot was a density ridgeline plot that we used to explore how the type of gun affected the total number of victims. The graph shows that multiple guns had the widest spread density as well as the largest total victims for one shooting. You will notice that semi auto rifles are listed with no density. This is because there were a limited number of shooting with semi auto so those data points were included in the rifle value.
 
-The third summary plot that we explored was a bar plot that showed the number of shootings by state for the top ten states (slide 7). The results of this were that California had significantly the highest number of shootings, followed by Florida, Texas, and Georgia.
+--- 
 
-The fourth & fifth summary plots are animated time series line charts (slide 8). Both graphs have an X-axis over the time period 2000-2016 as that period has the most interesting variance in the data where the time is aggregated by the variable *yearmon* which is every month of every year that a shooting occurred. The left plot has a Y-axis of *count* which is the sum of the number of articles published within 30 days prior to a shooting. The right plot has a Y-axis of the sum of the total number of victims of every shooting in a given month also separated out whether the shooter was known to have mental health illness or not. Something to be noticed about observing these two graphs next to each other is that the number of victims from shooters with a history of mental health illness seems to spike at similar times as the number of articles were published prior to the shooting. Another interesting aspect of this graph is the spike at the end very end on both graphs which is related to the pulse nightclub shooting in 2016. The pulse nightclub shooting had 102 total victims 50 of which were killed, and the article count spike is from a shooting that  happened two weeks later in a nightclub in South Carolina, potentially being a result of the 57 articles released by the NYTimes about the pulse  shooting. 
+![](plots/plot3.PNG)
+The third summary plot that we explored was a bar plot that showed the number of shootings by state for the top ten states. The results of this were that California had significantly the highest number of shootings, followed by Florida, Texas, and Georgia.
 
-The final summary plot that we made was a map of the United States that showed the location of the mass shootings in the data set along with a dot size that represented the total number of victims in the incident (slide 9). Similar to the histogram by city, we chose to do this to see an overview of the incidents and to check for any prominent trends. The conclusions we were vaguely able to draw from this plot were shooting locations seem to  be closer together on the East Coast, some few incidents in the middle of the United States, but generally spread out over the entire country. 
+---
+
+NYTimes Article Count      |  Sum of Total Vicitims
+:-------------------------:|:-------------------------:
+![](plots/plot4.gif)  |  ![](plots/plot5.gif)
+
+The fourth & fifth summary plots are animated time series line charts. Both graphs have an X-axis over the time period 2000-2016 as that period has the most interesting variance in the data where the time is aggregated by the variable *yearmon* which is every month of every year that a shooting occurred. The left plot has a Y-axis of *count* which is the sum of the number of articles published within 30 days prior to a shooting. The right plot has a Y-axis of the sum of the total number of victims of every shooting in a given month also separated out whether the shooter was known to have mental health illness or not. Something to be noticed about observing these two graphs next to each other is that the number of victims from shooters with a history of mental health illness seems to spike at similar times as the number of articles were published prior to the shooting. Another interesting aspect of this graph is the spike at the end very end on both graphs which is related to the pulse nightclub shooting in 2016. The pulse nightclub shooting had 102 total victims 50 of which were killed, and the article count spike is from a shooting that  happened two weeks later in a nightclub in South Carolina, potentially being a result of the 57 articles released by the NYTimes about the pulse  shooting. 
+
+![](plots/plot6.PNG)
+The final summary plot that we made was a map of the United States that showed the location of the mass shootings in the data set along with a dot size that represented the total number of victims in the incident. Similar to the histogram by city, we chose to do this to see an overview of the incidents and to check for any prominent trends. The conclusions we were vaguely able to draw from this plot were shooting locations seem to  be closer together on the East Coast, some few incidents in the middle of the United States, but generally spread out over the entire country. 
 
 ## **Predictive Models**
 
