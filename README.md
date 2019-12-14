@@ -32,7 +32,7 @@ Out of the 325 observations and 40 variables, our summary stats brought up some 
 ## **Summary Plots**
 
 <p align="center">
-<img src="plots/plot1.PNG" width="700" height="600" />
+<img src="plots/plot1.PNG" width="90%" height="90%" />
 </p>
 
 The first summary plot that we explored was a histogram of the number of shootings by city. We chose to do this as a basic exploration to see if there were any obvious trends that we wanted to look into further. The results of this histogram showed that the cities with the highest number of shootings were Chicago, Phoenix, and Los Angeles.
@@ -48,7 +48,7 @@ The second summary plot was a density ridgeline plot that we used to explore how
 --- 
 
 <p align="center">
-<img src="plots/plot3.PNG" width="75%" height="75%" />
+<img src="plots/plot3.PNG" width="90%" height="90%" />
 </p>
 
 The third summary plot that we explored was a bar plot that showed the number of shootings by state for the top ten states. The results of this were that California had significantly the highest number of shootings, followed by Florida, Texas, and Georgia.
