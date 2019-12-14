@@ -10,7 +10,7 @@
 
 ## **Introduction**
 
- With the rising issue of mass shootings in America, our group found it to be a relevant topic to do research and analysis to further investigate this issue. The files for this project can be found [here](https://github.com/ander428/StanfordMSA). Initially, we thought that we could create models that would help us predict the total number of victims of a given mass shooting, however, the models instead indicated significant variables that affect the number of victims if a mass shooting were to occur. 
+ With the rising issue of mass shootings in America, our group found it to be a relevant topic to do research and analysis to further investigate this issue. Initially, we thought that we could create models that would help us predict the total number of victims of a given mass shooting, however, the models instead indicated significant variables that affect the number of victims if a mass shooting were to occur. 
 
 *The Data*
 
